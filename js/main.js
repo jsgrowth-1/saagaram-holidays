@@ -16,17 +16,4 @@ const SAAGRAM = { whatsapp: '919790124255' }; // reused by booking.js in Phase 2
   }));
 })();
 
-/* Phase 4: show admin-saved room prices/photos on public pages.
-   DEMO LIMITATION: localStorage is per browser, so this only shows edits made in the SAME browser. A backend is needed for real visitors. */
-(() => {
-  let rooms; try { rooms = JSON.parse(localStorage.getItem('saagram_rooms') || '[]'); } catch { return; }
-  if (!Array.isArray(rooms) || !rooms.length) return;
-  document.querySelectorAll('.card').forEach(card => {
-    const a = card.querySelector('a[data-room], a[href*="booking.html?room="]'); if (!a) return;
-    const name = a.dataset.room || decodeURIComponent(a.getAttribute('href').split('room=')[1] || '');
-    const r = rooms.find(x => x.title === name); if (!r) return;
-    const price = String(r.price || '').replace(/[^0-9.,]/g, '');
-    if (price) { const p = document.createElement('p'); p.className = 'price'; p.textContent = 'From ₹' + price + ' per night'; a.before(p); }
-    if (typeof r.photo === 'string' && r.photo.startsWith('data:image/')) { const im = card.querySelector('.img'); if (im) im.style.backgroundImage = 'url("' + r.photo + '")'; }
-  });
-})();
+
