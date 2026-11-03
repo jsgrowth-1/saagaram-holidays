@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Admin Dashboard | Saagram Holidays Home</title><meta name="robots" content="noindex,nofollow">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css"><link rel="stylesheet" href="../css/admin.css"></head>
+<body class="adm"><div class="top"><button id="menuBtn" aria-label="Menu">☰</button><strong>Saagram Admin</strong></div>
+<div class="layout"><aside class="side"><span class="logo">SAAGRAM<small>ADMIN DEMO</small></span><button data-v="dash" class=on>📊 Dashboard</button><button data-v="rooms">🛏️ Rooms & Prices</button><button data-v="enq">📩 Enquiries</button><button data-v="blog">📝 Blog Posts</button><button data-v="places">📍 Attractions</button><button data-v="contact">☎️ Contact Info</button><button id="reset">🗑️ Reset demo data</button><a href="../index.html">← View website</a></aside>
+<main class="main"><div class="demo"><strong>Frontend demo only.</strong> There is no login or real security here. Anyone who opens this page can edit it, and data is saved only in this browser's localStorage (not shared across devices, lost if cleared). Real authentication, secure storage and multi-device booking management need a backend. Before going live, protect or remove this page.</div>
+<section class="view on" id="v-dash"><h2>Dashboard</h2><div class="stats" id="stats"></div><div class="panel" style="margin-top:18px"><h3>Quick start</h3><p class="sec-sub">Set room prices under Rooms &amp; Prices, add photos, and review enquiries as they arrive. Room prices are blank until you enter them.</p></div></section>
+<section class="view" id="v-rooms"><h2>Manage Rooms, Prices &amp; Photos</h2><p><button class="btn btn-sea" data-add="rooms">+ Add Room</button></p><div class="panel tbl" style="margin-top:14px"></div></section>
+<section class="view" id="v-enq"><h2>Booking Enquiries</h2><div class="panel tbl"></div></section>
+<section class="view" id="v-blog"><h2>Manage Blog Posts</h2><p><button class="btn btn-sea" data-add="blog">+ Add Post</button></p><div class="panel tbl" style="margin-top:14px"></div></section>
+<section class="view" id="v-places"><h2>Manage Tourist Attractions</h2><p><button class="btn btn-sea" data-add="places">+ Add Attraction</button></p><div class="panel tbl" style="margin-top:14px"></div></section>
+<section class="view" id="v-contact"><h2>Contact Information</h2><form class="panel" id="contactForm"></form></section>
+</main></div><dialog id="dlg"></dialog><script src="../js/admin.js"></script></body></html>
