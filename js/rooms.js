@@ -71,7 +71,8 @@
       ? `${escapeHTML(room.beds)} beds`
       : 'Spacious hall';
 
-    const count = `${escapeHTML(room.count)} ${Number(room.count) === 1 ? 'room' : 'rooms'} available`;
+const roomCount = Number(room.count) || 0;
+const count = `${roomCount} ${roomCount === 1 ? 'room' : 'rooms'}`;
 
     const description = room.description
       ? `<p>${escapeHTML(room.description)}</p>`
