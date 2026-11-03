@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Admin Login | Saagaram Holidays</title>
+  <meta name="robots" content="noindex,nofollow">
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #072a42, #116b83);
+      font-family: Poppins, sans-serif;
+      padding: 20px;
+    }
+
+    .login-box {
+      width: 100%;
+      max-width: 420px;
+      background: white;
+      padding: 40px 30px;
+      border-radius: 18px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, .25);
+    }
+
+    .brand {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .brand h1 {
+      color: #072a42;
+      margin: 0;
+      font-size: 28px;
+    }
+
+    .brand p {
+      color: #777;
+      font-size: 13px;
+      margin-top: 5px;
+    }
+
+    label {
+      display: block;
+      margin: 15px 0 6px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    input {
+      width: 100%;
+      padding: 13px;
+      border: 1px solid #d6dfe5;
+      border-radius: 9px;
+      font: inherit;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #116b83;
+    }
+
+    button {
+      width: 100%;
+      margin-top: 25px;
+      padding: 14px;
+      background: #116b83;
+      color: white;
+      border: 0;
+      border-radius: 9px;
+      font: 600 15px Poppins, sans-serif;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #072a42;
+    }
+
+    button:disabled {
+      opacity: .6;
+      cursor: wait;
+    }
+
+    .message {
+      margin-top: 15px;
+      font-size: 13px;
+      text-align: center;
+      color: #c0392b;
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 25px;
+      font-size: 12px;
+      color: #888;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="login-box">
+
+    <div class="brand">
+      <h1>SAAGARAM</h1>
+      <p>HOLIDAYS HOME | ADMIN LOGIN</p>
+    </div>
+
+    <form id="loginForm">
+
+      <label for="email">Admin Email</label>
+      <input
+        type="email"
+        id="email"
+        placeholder="Enter admin email"
+        autocomplete="username"
+        required
+      >
+
+      <label for="password">Password</label>
+      <input
+        type="password"
+        id="password"
+        placeholder="Enter password"
+        autocomplete="current-password"
+        required
+      >
+
+      <button type="submit" id="loginBtn">
+        Login to Dashboard
+      </button>
+
+      <p class="message" id="message" role="alert"></p>
+
+    </form>
+
+    <div class="footer">
+      © Saagaram Holidays Home
+    </div>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/supabase.js"></script>
+
+  <script>
+    const form = document.getElementById("loginForm");
+    const message = document.getElementById("message");
+    const loginBtn = document.getElementById("loginBtn");
+
+    async function checkAdmin(userId) {
+      const { data, error } = await db
+        .from("admin_profiles")
+        .select("role")
+        .eq("user_id", userId)
+        .eq("role", "admin")
+        .maybeSingle();
+
+      if (error) throw error;
+
+      return !!data;
+    }
+
+    // Redirect an already logged-in administrator.
+    async function checkExistingSession() {
+      const { data: { user }, error } = await db.auth.getUser();
+
+      if (error || !user) return;
+
+      try {
+        if (await checkAdmin(user.id)) {
+          window.location.replace("index.html");
+        }
+      } catch (err) {
+        console.error("Session verification failed:", err);
+      }
+    }
+
+    checkExistingSession();
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      message.textContent = "";
+      loginBtn.disabled = true;
+      loginBtn.textContent = "Signing in...";
+
+      try {
+        const email = document.getElementById("email").value.trim();
+        const password = document.getElementById("password").value;
+
+        const { data, error } = await db.auth.signInWithPassword({
+          email,
+          password
+        });
+
+        if (error) throw error;
+
+        const allowed = await checkAdmin(data.user.id);
+
+        if (!allowed) {
+          await db.auth.signOut();
+          message.textContent = "This account does not have administrator access.";
+          return;
+        }
+
+        window.location.replace("index.html");
+
+      } catch (error) {
+        message.textContent = error.message || "Login failed. Please try again.";
+      } finally {
+        loginBtn.disabled = false;
+        loginBtn.textContent = "Login to Dashboard";
+      }
+    });
+  </script>
+
+</body>
+</html>
