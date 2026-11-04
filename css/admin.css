@@ -30,3 +30,33 @@ textarea{min-height:90px}
 .row{display:flex;gap:10px;margin-top:16px;justify-content:flex-end}
 .empty{color:var(--muted);padding:14px}
 @media(min-width:900px){.side{transform:none}.main{margin-left:250px;padding:30px}.top{display:none}.stats{grid-template-columns:repeat(4,1fr)}}
+.admin-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 15px 12px 25px;
+    text-decoration: none;
+}
+
+.admin-brand img {
+    width: 55px;
+    height: 55px;
+    object-fit: contain;
+}
+
+.admin-brand span {
+    display: flex;
+    flex-direction: column;
+}
+
+.admin-brand strong {
+    color: #ffffff;
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+}
+
+.admin-brand small {
+    color: #c9a24b;
+    font-size: 10px;
+    letter-spacing: 2px;
+}
