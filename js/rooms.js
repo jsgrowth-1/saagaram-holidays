@@ -39,10 +39,9 @@
       'images/rooms/IMG-20261024-WA0050.jpg'
     ],
     'Hall': [
-      'images/rooms/IMG-20261024-WA0055.jpg',
-      'images/rooms/IMG-20261024-WA0045.jpg',
-      'images/rooms/IMG-20261024-WA0057.jpg'
-    ]
+  'images/rooms/IMG-20261024-WA0045.jpg',
+  'images/rooms/IMG-20261024-WA0057.jpg'
+]
   };
 
   // Display every room photo at the same time in a responsive photo grid.
