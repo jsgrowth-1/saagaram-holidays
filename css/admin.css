@@ -68,3 +68,157 @@ textarea{min-height:90px}
     object-fit: contain;
     flex-shrink: 0;
 }
+/* =================================
+   SAAGARAM ADMIN - MOBILE RESPONSIVE
+================================= */
+
+.top {
+    display: none;
+}
+
+/* Tablets and mobile phones */
+@media screen and (max-width: 768px) {
+
+    body.adm {
+        overflow-x: hidden;
+    }
+
+    /* Mobile top navigation */
+    .top {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        height: 60px;
+        padding: 0 18px;
+        background: #0b2f45;
+        color: #fff;
+        position: sticky;
+        top: 0;
+        z-index: 1001;
+    }
+
+    .top strong {
+        font-size: 18px;
+    }
+
+    #menuBtn {
+        display: block;
+        background: transparent;
+        color: white;
+        border: none;
+        font-size: 26px;
+        cursor: pointer;
+    }
+
+    /* Main layout */
+    .layout {
+        display: block !important;
+        width: 100%;
+        min-height: calc(100vh - 60px);
+    }
+
+    /* Sidebar */
+    .side {
+        position: fixed !important;
+        top: 60px;
+        left: 0;
+        bottom: 0;
+        width: 260px;
+        max-width: 85%;
+        z-index: 1000;
+        overflow-y: auto;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+        box-shadow: 5px 0 20px rgba(0,0,0,0.2);
+    }
+
+    .side.open {
+        transform: translateX(0);
+    }
+
+    /* Main content */
+    .main {
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 20px 14px !important;
+        min-width: 0;
+    }
+
+    .main h2 {
+        font-size: 22px;
+    }
+
+    /* Dashboard statistics */
+    .stats {
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 12px;
+    }
+
+    .stats > * {
+        min-width: 0;
+        padding: 15px !important;
+    }
+
+    /* Panels */
+    .panel {
+        padding: 14px !important;
+        border-radius: 14px;
+    }
+
+    /* Tables */
+    .tbl {
+        width: 100%;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .tbl table {
+        min-width: 650px;
+        width: 100%;
+    }
+
+    .tbl th,
+    .tbl td {
+        white-space: nowrap;
+        padding: 12px 10px;
+    }
+
+    /* Buttons */
+    .btn {
+        min-height: 40px;
+    }
+
+    button {
+        touch-action: manipulation;
+    }
+
+    /* Forms and dialog */
+    input,
+    select,
+    textarea {
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+
+    dialog {
+        width: calc(100% - 24px);
+        max-width: 500px;
+    }
+}
+
+/* Very small phones */
+@media screen and (max-width: 380px) {
+
+    .stats {
+        grid-template-columns: 1fr !important;
+    }
+
+    .main {
+        padding: 16px 10px !important;
+    }
+
+    .top strong {
+        font-size: 16px;
+    }
+}
