@@ -38,7 +38,7 @@
       'images/rooms/IMG-20261024-WA0054.jpg',
       'images/rooms/IMG-20261024-WA0050.jpg'
     ],
-    'Hall': [
+ 'Hall': [
   'images/rooms/IMG-20261024-WA0045.jpg',
   'images/rooms/IMG-20261024-WA0057.jpg'
 ]
