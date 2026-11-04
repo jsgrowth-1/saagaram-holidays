@@ -60,3 +60,11 @@ textarea{min-height:90px}
     font-size: 10px;
     letter-spacing: 2px;
 }
+
+.admin-brand img {
+    display: block;
+    width: 55px;
+    height: 55px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
