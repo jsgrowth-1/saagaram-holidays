@@ -1,6 +1,7 @@
 /* SAAGARAM HOLIDAYS - PUBLIC ROOMS PAGE
    Room details and prices come from Supabase.
    Room photographs remain in the GitHub repository.
+   All room photographs are displayed together; no thumbnail clicking required.
 */
 (() => {
   const SUPABASE_URL = 'https://pgsgxcpcadzrtpztyits.supabase.co';
@@ -13,7 +14,6 @@
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
   }[char]));
 
-  // Fixed GitHub image paths. Update these paths here if repository filenames change.
   const ROOM_IMAGES = {
     'Double Bed Room': [
       'images/rooms/IMG-20261024-WA0059.jpg',
@@ -45,6 +45,38 @@
     ]
   };
 
+  // Display every room photo at the same time in a responsive photo grid.
+  const galleryStyles = `
+    <style id="saagaram-room-gallery-styles">
+      #roomsGrid .room-gallery {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+        margin: 0;
+        padding: 12px 12px 0;
+      }
+      #roomsGrid .room-gallery img {
+        display: block;
+        width: 100%;
+        height: 150px;
+        object-fit: cover;
+        border-radius: 10px;
+        background: #edf2f2;
+      }
+      #roomsGrid .room-gallery img:first-child {
+        grid-column: 1 / -1;
+        height: 220px;
+      }
+      @media (max-width: 520px) {
+        #roomsGrid .room-gallery img { height: 120px; }
+        #roomsGrid .room-gallery img:first-child { height: 190px; }
+      }
+    </style>`;
+
+  if (!document.querySelector('#saagaram-room-gallery-styles')) {
+    document.head.insertAdjacentHTML('beforeend', galleryStyles);
+  }
+
   function formatPrice(price) {
     if (price === null || price === undefined || price === '') {
       return 'Tariff available on enquiry';
@@ -54,39 +86,28 @@
 
   function roomCard(room) {
     const images = ROOM_IMAGES[room.title] || [];
-    const cover = images[0] || '';
-    const imageStyle = cover
-      ? `background-image:url("${encodeURI(cover)}"),linear-gradient(135deg,#0b3c5d,#1fa391)`
-      : 'background:linear-gradient(135deg,#0b3c5d,#1fa391)';
-
-    const gallery = images.slice(1).map((path, index) => `
-      <button type="button"
-        style="background-image:url('${encodeURI(path)}'),linear-gradient(135deg,#0b3c5d,#1fa391)"
-        data-room-image="${escapeHTML(path)}"
-        aria-label="${escapeHTML(room.title)} photo ${index + 2}">
-      </button>
-    `).join('');
+    const gallery = images.length
+      ? `<div class="room-gallery" aria-label="${escapeHTML(room.title)} photographs">
+          ${images.map((path, index) => `
+            <img src="${escapeHTML(path)}"
+                 alt="${escapeHTML(room.title)} photo ${index + 1}"
+                 loading="lazy">
+          `).join('')}
+        </div>`
+      : `<div class="room-gallery"><p>Photos coming soon.</p></div>`;
 
     const capacity = Number(room.beds) > 0
       ? `${escapeHTML(room.beds)} beds`
       : 'Spacious hall';
-
-const roomCount = Number(room.count) || 0;
-const count = `${roomCount} ${roomCount === 1 ? 'room' : 'rooms'}`;
-
+    const count = `${escapeHTML(room.count)} ${Number(room.count) === 1 ? 'room' : 'rooms'} available`;
     const description = room.description
       ? `<p>${escapeHTML(room.description)}</p>`
       : '<p>A comfortable space for your Kanyakumari stay.</p>';
-
     const roomQuery = encodeURIComponent(room.title);
 
     return `
       <article class="card reveal">
-        <div class="img" role="img"
-          aria-label="${escapeHTML(room.title)}"
-          style="height:240px;${imageStyle}">
-        </div>
-        ${gallery ? `<div class="gal">${gallery}</div>` : ''}
+        ${gallery}
         <div class="body">
           <h2 style="font-size:1.4rem">${escapeHTML(room.title)}</h2>
           <div class="meta">${capacity} · ${count}</div>
@@ -106,12 +127,9 @@ const count = `${roomCount} ${roomCount === 1 ? 'room' : 'rooms'}`;
       grid.innerHTML = '<p class="empty">Room information is temporarily unavailable. Please contact us for details.</p>';
       console.error('Supabase JavaScript library did not load.');
       return;
-
-
     }
 
     const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
     const { data: rooms, error } = await client
       .from('rooms')
       .select('id,title,beds,count,price,description,status')
@@ -131,24 +149,6 @@ const count = `${roomCount} ${roomCount === 1 ? 'room' : 'rooms'}`;
 
     grid.innerHTML = rooms.map(roomCard).join('');
 
-    // Attach gallery thumbnail interactions to dynamically generated thumbnails.
-    grid.querySelectorAll('[data-room-image]').forEach(button => {
-      button.addEventListener('click', () => {
-        const card = button.closest('.card');
-        const mainImage = card?.querySelector('.img');
-        if (!mainImage) return;
-        const selected = button.dataset.roomImage;
-        const previous = mainImage.dataset.currentImage || '';
-        mainImage.style.backgroundImage =
-          `url("${selected}"),linear-gradient(135deg,#0b3c5d,#1fa391)`;
-        mainImage.dataset.currentImage = selected;
-        button.dataset.roomImage = previous || selected;
-        button.style.backgroundImage =
-          `url("${previous || selected}"),linear-gradient(135deg,#0b3c5d,#1fa391)`;
-      });
-    });
-
-    // Re-observe dynamically inserted cards for the site's scroll-reveal effect.
     if ('IntersectionObserver' in window) {
       const observer = new IntersectionObserver(entries => {
         entries.forEach(entry => {
@@ -158,7 +158,6 @@ const count = `${roomCount} ${roomCount === 1 ? 'room' : 'rooms'}`;
           }
         });
       }, { threshold: 0.12 });
-
       grid.querySelectorAll('.reveal').forEach(card => observer.observe(card));
     }
   }
