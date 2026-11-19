@@ -1,27 +1,32 @@
-\<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
-\<urlset xmlns="[http://www.sitemaps.org/schemas/sitemap/0.9](http://www.sitemaps.org/schemas/sitemap/0.9)">
+  <url>
+    <loc>https://saagaram.in/</loc>
+  </url>
 
-\<url> \<loc>[https://saagaram.in/](https://saagaram.in/)\</loc> \</url>
+  <url>
+    <loc>https://saagaram.in/about.html</loc>
+  </url>
 
-\<url> \<loc>[https://saagaram.in/about.html](https://saagaram.in/about.html)\</loc> \</url>
+  <url>
+    <loc>https://saagaram.in/rooms.html</loc>
+  </url>
 
-\<url> \<loc>[https://saagaram.in/rooms.html](https://saagaram.in/rooms.html)\</loc> \</url>
+  <url>
+    <loc>https://saagaram.in/booking.html</loc>
+  </url>
 
-\<url> \<loc>[https://saagaram.in/booking.html](https://saagaram.in/booking.html)\</loc> \</url>
+  <url>
+    <loc>https://saagaram.in/blog.html</loc>
+  </url>
 
-\<url> \<loc>[https://saagaram.in/blog.html](https://saagaram.in/blog.html)\</loc> \</url>
+  <url>
+    <loc>https://saagaram.in/contact.html</loc>
+  </url>
 
-\<url> \<loc>[https://saagaram.in/contact.html](https://saagaram.in/contact.html)\</loc> \</url>
+  <url>
+    <loc>https://saagaram.in/tourist-places.html</loc>
+  </url>
 
-\<url> \<loc>[https://saagaram.in/tourist-places.html](https://saagaram.in/tourist-places.html)\</loc> \</url>
-
-\<url> \<loc>[https://saagaram.in/blog/best-places-to-visit-in-kanyakumari.html](https://saagaram.in/blog/best-places-to-visit-in-kanyakumari.html)\</loc> \</url>
-
-\<url> \<loc>[https://saagaram.in/blog/sunrise-at-the-southernmost-tip-of-india.html](https://saagaram.in/blog/sunrise-at-the-southernmost-tip-of-india.html)\</loc> \</url>
-
-\<url> \<loc>[https://saagaram.in/blog/sunset-at-kanyakumari.html](https://saagaram.in/blog/sunset-at-kanyakumari.html)\</loc> \</url>
-
-\<url> \<loc>[https://saagaram.in/blog/best-time-to-visit-kanyakumari.html](https://saagaram.in/blog/best-time-to-visit-kanyakumari.html)\</loc> \</url>
-
-\</urlset>
+</urlset>
