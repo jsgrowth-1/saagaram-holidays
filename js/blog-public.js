@@ -36,11 +36,11 @@
     if (!grid) return;
     try {
       const client = await getDb();
-      const { data, error } = await client.from('blog_posts')
-        .select('id,title,slug,description,photo,status,category,author,created_at,published_at')
-        .eq('status', 'Published')
-        .order('published_at', { ascending: false, nullsFirst: false })
-        .order('created_at', { ascending: false });
+     const { data, error } = await client
+    .from('blog_posts')
+    .select('id,title,slug,description,body,photo,status,category,created_at')
+    .eq('status', 'Published')
+    .order('created_at', { ascending: false });
       if (error) throw error;
 
       if (!data?.length) {
