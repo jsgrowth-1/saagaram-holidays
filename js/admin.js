@@ -212,7 +212,7 @@ async function renderBlog() {
   }
 
   blogRows = data || [];
-  const published = blogRows.filter(post => post.status === 'published').length;
+  const published = blogRows.filter(post => String(post.status || '').toLowerCase() === 'published').length;
   const drafts = blogRows.length - published;
   const categories = new Set(blogRows.map(post => post.category).filter(Boolean)).size;
 
@@ -238,7 +238,7 @@ async function renderBlog() {
         ${[...new Set([...BLOG_CATEGORIES, ...blogRows.map(p => p.category).filter(Boolean)])].map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('')}
       </select>
       <select id="blogStatusFilter" aria-label="Filter by status">
-        <option value="">All statuses</option><option value="published">Published</option><option value="draft">Draft</option>
+        <option value="">All statuses</option><option value="Published">Published</option><option value="Draft">Draft</option>
       </select>
     </div>`;
 
@@ -258,7 +258,7 @@ async function renderBlog() {
         <td>${post.photo ? `<img class="blog-thumb" src="${esc(post.photo)}" alt="">` : '<span class="blog-no-image">No image</span>'}</td>
         <td><strong>${esc(post.title)}</strong><small class="blog-slug">/${esc(post.slug || '')}</small></td>
         <td>${esc(post.category || 'Uncategorized')}</td>
-        <td><span class="blog-status ${post.status === 'published' ? 'is-published' : 'is-draft'}">${post.status === 'published' ? 'Published' : 'Draft'}</span></td>
+        <td><span class="blog-status ${String(post.status || '').toLowerCase() === 'published' ? 'is-published' : 'is-draft'}">${String(post.status || '').toLowerCase() === 'published' ? 'Published' : 'Draft'}</span></td>
         <td>${blogDate(post.updated_at || post.created_at)}</td>
         <td class="blog-actions"><button class="sm" data-blog-edit="${esc(post.id)}">Edit</button>
         <button class="sm del" data-blog-delete="${esc(post.id)}">Delete</button></td>
@@ -295,7 +295,7 @@ async function deleteBlogPost(id) {
 function openBlogForm(post = null) {
   const dialog = $('#dlg');
   const currentPhoto = post?.photo || '';
-  const initialStatus = post?.status === 'published' ? 'published' : 'draft';
+  const initialStatus = String(post?.status || 'Draft').toLowerCase() === 'published' ? 'Published' : 'Draft';
 
   dialog.classList.add('blog-dialog');
   dialog.innerHTML = `
@@ -326,8 +326,8 @@ function openBlogForm(post = null) {
             <h4>Publish settings</h4>
             <label for="blogStatus">Status</label>
             <select id="blogStatus" name="status">
-              <option value="draft" ${initialStatus === 'draft' ? 'selected' : ''}>Save as draft</option>
-              <option value="published" ${initialStatus === 'published' ? 'selected' : ''}>Published</option>
+              <option value="Draft" ${initialStatus === 'Draft' ? 'selected' : ''}>Save as draft</option>
+              <option value="Published" ${initialStatus === 'Published' ? 'selected' : ''}>Published</option>
             </select>
             <label for="blogCategory">Category</label>
             <select id="blogCategory" name="category">
@@ -341,7 +341,7 @@ function openBlogForm(post = null) {
             <h4>Featured image</h4>
             <input id="blogPhoto" type="file" accept="image/jpeg,image/png,image/webp">
             <img id="blogPhotoPreview" class="blog-photo-preview" src="${esc(currentPhoto)}" alt="Featured image preview" style="${currentPhoto ? '' : 'display:none'}">
-            <small class="field-help">JPG, PNG or WebP. Maximum 1 MB.</small>
+            <small class="field-help">JPG, PNG or WebP. Maximum 5 MB.</small>
           </div>
 
           <div class="blog-side-card">
@@ -381,8 +381,8 @@ function openBlogForm(post = null) {
   photoInput.addEventListener('change', () => {
     const file = photoInput.files?.[0];
     if (!file) return;
-    if (file.size > 1 * 1024 * 1024) {
-      alert('Image must be 1 MB or smaller.');
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Image must be 5 MB or smaller.');
       photoInput.value = '';
       return;
     }
@@ -398,6 +398,8 @@ function openBlogForm(post = null) {
 
   // Article content uses a simple textarea; no third-party editor or API key is required.\n
   async function saveBlog(status) {
+    // Database CHECK constraint permits exactly 'Draft' and 'Published'.
+    status = String(status || '').toLowerCase() === 'published' ? 'Published' : 'Draft';
     const form = $('#blogForm', dialog);
     const title = titleInput.value.trim();
     const slug = makeSlug(slugInput.value || title);
@@ -438,7 +440,7 @@ function openBlogForm(post = null) {
         meta_title: $('#blogMetaTitle', dialog).value.trim() || title,
         meta_description: $('#blogMetaDescription', dialog).value.trim() || description,
         updated_at: now,
-        published_at: status === 'published' ? (post?.published_at || now) : null
+        published_at: status === 'Published' ? (post?.published_at || now) : null
       };
 
       // Check slug uniqueness before insert/update to provide a readable error.
@@ -467,9 +469,9 @@ function openBlogForm(post = null) {
 
   $('#blogForm', dialog).onsubmit = event => {
     event.preventDefault();
-    saveBlog('draft');
+    saveBlog('Draft');
   };
-  $('#blogPublish', dialog).onclick = () => saveBlog('published');
+  $('#blogPublish', dialog).onclick = () => saveBlog('Published');
   $('#blogSaveDraft', dialog).textContent = 'Save Draft';
 
   dialog.showModal();
