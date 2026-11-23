@@ -78,7 +78,7 @@
     try {
       const client = await getDb();
       const { data: post, error } = await client.from('blog_posts')
-        .select('title,slug,description,body,photo,status,category,author,meta_title,meta_description,created_at,published_at')
+     .select('id,title,slug,description,body,photo,status,category,created_at')
         .eq('slug', slug)
         .eq('status', 'Published')
         .maybeSingle();
