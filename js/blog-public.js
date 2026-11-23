@@ -56,7 +56,7 @@
             ${post.category ? `<span class="blog-category">${esc(post.category)}</span>` : ''}
             <h2 style="font-size:1.15rem">${esc(post.title)}</h2>
             <p>${esc(post.description || '')}</p>
-            ${post.published_at ? `<p class="blog-date">${new Date(post.published_at).toLocaleDateString('en-IN')}</p>` : ''}
+          ${post.created_at ? `<p class="blog-date">${new Date(post.created_at).toLocaleDateString('en-IN')}</p>` : ''}
             <a class="btn btn-sea" href="blog-post.html?slug=${encodeURIComponent(post.slug)}">Read More</a>
           </div>
         </article>`).join('');
