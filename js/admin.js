@@ -341,7 +341,7 @@ function openBlogForm(post = null) {
             <h4>Featured image</h4>
             <input id="blogPhoto" type="file" accept="image/jpeg,image/png,image/webp">
             <img id="blogPhotoPreview" class="blog-photo-preview" src="${esc(currentPhoto)}" alt="Featured image preview" style="${currentPhoto ? '' : 'display:none'}">
-            <small class="field-help">JPG, PNG or WebP. Maximum 5 MB.</small>
+            <small class="field-help">JPG, PNG or WebP. Maximum 1 MB.</small>
           </div>
 
           <div class="blog-side-card">
@@ -362,7 +362,6 @@ function openBlogForm(post = null) {
     </form>`;
 
   const closeDialog = () => {
-    if (window.tinymce) tinymce.remove('#blogBody');
     dialog.close();
     dialog.classList.remove('blog-dialog');
   };
@@ -382,8 +381,8 @@ function openBlogForm(post = null) {
   photoInput.addEventListener('change', () => {
     const file = photoInput.files?.[0];
     if (!file) return;
-    if (file.size > 5 * 1024 * 1024) {
-      alert('Image must be 5 MB or smaller.');
+    if (file.size > 1 * 1024 * 1024) {
+      alert('Image must be 1 MB or smaller.');
       photoInput.value = '';
       return;
     }
@@ -397,30 +396,13 @@ function openBlogForm(post = null) {
     preview.style.display = 'block';
   });
 
-  if (window.tinymce) {
-    tinymce.init({
-      selector: '#blogBody',
-      height: 430,
-      menubar: 'edit view insert format tools table',
-      plugins: 'lists link image table code wordcount',
-      toolbar: 'undo redo | blocks | bold italic underline | alignleft aligncenter alignright | bullist numlist | link image table | removeformat | code',
-      branding: false,
-      promotion: false,
-      convert_urls: false,
-      content_style: 'body { font-family: Arial, sans-serif; font-size: 16px; line-height: 1.7; }'
-    });
-  } else {
-    console.warn('TinyMCE was not loaded. Article content will use the fallback textarea.');
-  }
-
+  // Article content uses a simple textarea; no third-party editor or API key is required.\n
   async function saveBlog(status) {
     const form = $('#blogForm', dialog);
     const title = titleInput.value.trim();
     const slug = makeSlug(slugInput.value || title);
     const description = $('#blogDescription', dialog).value.trim();
-    const body = window.tinymce?.get('blogBody')
-      ? tinymce.get('blogBody').getContent()
-      : $('#blogBody', dialog).value.trim();
+    const body = $('#blogBody', dialog).value.trim();
 
     if (!title || !slug || !body.trim()) {
       alert('Please enter a title, URL slug and article content.');
