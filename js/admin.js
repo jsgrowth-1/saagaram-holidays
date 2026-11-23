@@ -87,13 +87,6 @@ function readPhoto(file) {
 }
 
 const CFG = {
-  blog: {
-    label: 'Post', cols: ['photo', 'title', 'desc'],
-    fields: [
-      ['title', 'Title'], ['desc', 'Short description', 'textarea'],
-      ['body', 'Article body', 'textarea'], ['photo', 'Featured image', 'image']
-    ]
-  },
   places: {
     label: 'Attraction', cols: ['photo', 'title', 'distance'],
     fields: [
@@ -177,6 +170,329 @@ function openLocalForm(key, item = null) {
     }
   };
 }
+
+
+/* BLOG POSTS: Supabase database + Supabase Storage. */
+let blogRows = [];
+const BLOG_BUCKET = 'blog-images';
+const BLOG_CATEGORIES = ['Travel', 'Tourism', 'Destinations', 'Hotel Guide', 'Travel Tips', 'Local Attractions'];
+
+function makeSlug(value) {
+  return String(value || '')
+    .toLowerCase()
+    .trim()
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 90);
+}
+
+function blogDate(value) {
+  if (!value) return '—';
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? '—' : date.toLocaleDateString('en-IN');
+}
+
+async function renderBlog() {
+  const section = $('#v-blog');
+  const tablePanel = $('#v-blog .tbl');
+  if (!section || !tablePanel) return;
+
+  tablePanel.innerHTML = '<p class="empty">Loading blog posts from Supabase...</p>';
+
+  const { data, error } = await db.from('blog_posts')
+    .select('id,title,slug,description,body,photo,status,category,author,meta_title,meta_description,created_at,updated_at,published_at')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Blog load error:', error);
+    tablePanel.innerHTML = `<p class="empty">Could not load blog posts: ${esc(error.message)}. Check the blog_posts table columns and its RLS policies.</p>`;
+    return;
+  }
+
+  blogRows = data || [];
+  const published = blogRows.filter(post => post.status === 'published').length;
+  const drafts = blogRows.length - published;
+  const categories = new Set(blogRows.map(post => post.category).filter(Boolean)).size;
+
+  let tools = $('#blogTools');
+  if (!tools) {
+    tools = document.createElement('div');
+    tools.id = 'blogTools';
+    tools.className = 'blog-tools';
+    tablePanel.before(tools);
+  }
+
+  tools.innerHTML = `
+    <div class="blog-metrics">
+      <div class="blog-metric"><span>Total posts</span><strong>${blogRows.length}</strong></div>
+      <div class="blog-metric"><span>Published</span><strong>${published}</strong></div>
+      <div class="blog-metric"><span>Drafts</span><strong>${drafts}</strong></div>
+      <div class="blog-metric"><span>Categories</span><strong>${categories}</strong></div>
+    </div>
+    <div class="blog-filters">
+      <input type="search" id="blogSearch" placeholder="Search blog title..." aria-label="Search blog posts">
+      <select id="blogCategoryFilter" aria-label="Filter by category">
+        <option value="">All categories</option>
+        ${[...new Set([...BLOG_CATEGORIES, ...blogRows.map(p => p.category).filter(Boolean)])].map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('')}
+      </select>
+      <select id="blogStatusFilter" aria-label="Filter by status">
+        <option value="">All statuses</option><option value="published">Published</option><option value="draft">Draft</option>
+      </select>
+    </div>`;
+
+  function drawRows() {
+    const term = ($('#blogSearch')?.value || '').trim().toLowerCase();
+    const category = $('#blogCategoryFilter')?.value || '';
+    const status = $('#blogStatusFilter')?.value || '';
+    const filtered = blogRows.filter(post =>
+      (!term || `${post.title || ''} ${post.description || ''}`.toLowerCase().includes(term)) &&
+      (!category || post.category === category) &&
+      (!status || post.status === status)
+    );
+
+    tablePanel.innerHTML = filtered.length ? `<table class="blog-table">
+      <thead><tr><th>Image</th><th>Title</th><th>Category</th><th>Status</th><th>Updated</th><th>Actions</th></tr></thead>
+      <tbody>${filtered.map(post => `<tr>
+        <td>${post.photo ? `<img class="blog-thumb" src="${esc(post.photo)}" alt="">` : '<span class="blog-no-image">No image</span>'}</td>
+        <td><strong>${esc(post.title)}</strong><small class="blog-slug">/${esc(post.slug || '')}</small></td>
+        <td>${esc(post.category || 'Uncategorized')}</td>
+        <td><span class="blog-status ${post.status === 'published' ? 'is-published' : 'is-draft'}">${post.status === 'published' ? 'Published' : 'Draft'}</span></td>
+        <td>${blogDate(post.updated_at || post.created_at)}</td>
+        <td class="blog-actions"><button class="sm" data-blog-edit="${esc(post.id)}">Edit</button>
+        <button class="sm del" data-blog-delete="${esc(post.id)}">Delete</button></td>
+      </tr>`).join('')}</tbody></table>` : '<p class="empty">No matching blog posts found.</p>';
+  }
+
+  tools.querySelectorAll('input,select').forEach(control => {
+    control.addEventListener('input', drawRows);
+    control.addEventListener('change', drawRows);
+  });
+  drawRows();
+
+  tablePanel.onclick = event => {
+    const editId = event.target.closest('[data-blog-edit]')?.dataset.blogEdit;
+    const deleteId = event.target.closest('[data-blog-delete]')?.dataset.blogDelete;
+    if (editId) openBlogForm(blogRows.find(post => String(post.id) === String(editId)));
+    if (deleteId) deleteBlogPost(deleteId);
+  };
+}
+
+async function deleteBlogPost(id) {
+  const post = blogRows.find(item => String(item.id) === String(id));
+  if (!post || !confirm(`Delete "${post.title}" permanently?`)) return;
+
+  const { error } = await db.from('blog_posts').delete().eq('id', id);
+  if (error) {
+    alert('Could not delete blog post: ' + error.message);
+    return;
+  }
+  await renderBlog();
+  await stats();
+}
+
+function openBlogForm(post = null) {
+  const dialog = $('#dlg');
+  const currentPhoto = post?.photo || '';
+  const initialStatus = post?.status === 'published' ? 'published' : 'draft';
+
+  dialog.classList.add('blog-dialog');
+  dialog.innerHTML = `
+    <form id="blogForm" class="blog-form">
+      <div class="blog-form-heading">
+        <div><h3>${post ? 'Edit Blog Post' : 'Create Blog Post'}</h3><p>Write, optimize and publish your Saagaram article.</p></div>
+        <button type="button" class="blog-close" id="blogCancel" aria-label="Close">×</button>
+      </div>
+      <div class="blog-form-grid">
+        <div class="blog-main-fields">
+          <label for="blogTitle">Blog title *</label>
+          <input id="blogTitle" name="title" maxlength="180" required value="${esc(post?.title || '')}" placeholder="Enter an engaging blog title">
+
+          <label for="blogSlug">URL slug *</label>
+          <input id="blogSlug" name="slug" maxlength="120" required value="${esc(post?.slug || '')}" placeholder="example-blog-title">
+          <small class="field-help">Used in the public blog URL. Use lowercase letters, numbers and hyphens.</small>
+
+          <label for="blogDescription">Short description</label>
+          <textarea id="blogDescription" name="description" maxlength="320" rows="3" placeholder="Write a short introduction...">${esc(post?.description || '')}</textarea>
+
+          <label for="blogBody">Article content *</label>
+          <textarea id="blogBody" name="body" class="blog-editor" rows="16">${esc(post?.body || '')}</textarea>
+          <small class="field-help">Use the editor toolbar for headings, lists, links and formatting.</small>
+        </div>
+
+        <aside class="blog-side-fields">
+          <div class="blog-side-card">
+            <h4>Publish settings</h4>
+            <label for="blogStatus">Status</label>
+            <select id="blogStatus" name="status">
+              <option value="draft" ${initialStatus === 'draft' ? 'selected' : ''}>Save as draft</option>
+              <option value="published" ${initialStatus === 'published' ? 'selected' : ''}>Published</option>
+            </select>
+            <label for="blogCategory">Category</label>
+            <select id="blogCategory" name="category">
+              ${[...new Set([...BLOG_CATEGORIES, ...(post?.category ? [post.category] : [])])].map(c => `<option value="${esc(c)}" ${post?.category === c ? 'selected' : ''}>${esc(c)}</option>`).join('')}
+            </select>
+            <label for="blogAuthor">Author</label>
+            <input id="blogAuthor" name="author" value="${esc(post?.author || 'Saagaram Holidays')}">
+          </div>
+
+          <div class="blog-side-card">
+            <h4>Featured image</h4>
+            <input id="blogPhoto" type="file" accept="image/jpeg,image/png,image/webp">
+            <img id="blogPhotoPreview" class="blog-photo-preview" src="${esc(currentPhoto)}" alt="Featured image preview" style="${currentPhoto ? '' : 'display:none'}">
+            <small class="field-help">JPG, PNG or WebP. Maximum 5 MB.</small>
+          </div>
+
+          <div class="blog-side-card">
+            <h4>SEO settings</h4>
+            <label for="blogMetaTitle">Meta title</label>
+            <input id="blogMetaTitle" name="meta_title" maxlength="70" value="${esc(post?.meta_title || '')}" placeholder="SEO page title">
+            <label for="blogMetaDescription">Meta description</label>
+            <textarea id="blogMetaDescription" name="meta_description" maxlength="170" rows="4" placeholder="Search result description...">${esc(post?.meta_description || '')}</textarea>
+          </div>
+        </aside>
+      </div>
+      <div class="blog-form-footer">
+        <span id="blogSaveMessage" role="status"></span>
+        <button type="button" class="btn" id="blogCancelBottom">Cancel</button>
+        <button type="submit" class="btn btn-sea" id="blogSaveDraft">Save Draft</button>
+        <button type="button" class="btn btn-publish" id="blogPublish">Publish</button>
+      </div>
+    </form>`;
+
+  const closeDialog = () => {
+    if (window.tinymce) tinymce.remove('#blogBody');
+    dialog.close();
+    dialog.classList.remove('blog-dialog');
+  };
+  $('#blogCancel', dialog).onclick = closeDialog;
+  $('#blogCancelBottom', dialog).onclick = closeDialog;
+
+  const titleInput = $('#blogTitle', dialog);
+  const slugInput = $('#blogSlug', dialog);
+  let slugTouched = Boolean(post?.slug);
+  slugInput.addEventListener('input', () => { slugTouched = true; });
+  titleInput.addEventListener('input', () => {
+    if (!slugTouched) slugInput.value = makeSlug(titleInput.value);
+  });
+
+  const photoInput = $('#blogPhoto', dialog);
+  let uploadedPhotoUrl = currentPhoto;
+  photoInput.addEventListener('change', () => {
+    const file = photoInput.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Image must be 5 MB or smaller.');
+      photoInput.value = '';
+      return;
+    }
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      alert('Please choose a JPG, PNG or WebP image.');
+      photoInput.value = '';
+      return;
+    }
+    const preview = $('#blogPhotoPreview', dialog);
+    preview.src = URL.createObjectURL(file);
+    preview.style.display = 'block';
+  });
+
+  if (window.tinymce) {
+    tinymce.init({
+      selector: '#blogBody',
+      height: 430,
+      menubar: 'edit view insert format tools table',
+      plugins: 'lists link image table code wordcount',
+      toolbar: 'undo redo | blocks | bold italic underline | alignleft aligncenter alignright | bullist numlist | link image table | removeformat | code',
+      branding: false,
+      promotion: false,
+      convert_urls: false,
+      content_style: 'body { font-family: Arial, sans-serif; font-size: 16px; line-height: 1.7; }'
+    });
+  } else {
+    console.warn('TinyMCE was not loaded. Article content will use the fallback textarea.');
+  }
+
+  async function saveBlog(status) {
+    const form = $('#blogForm', dialog);
+    const title = titleInput.value.trim();
+    const slug = makeSlug(slugInput.value || title);
+    const description = $('#blogDescription', dialog).value.trim();
+    const body = window.tinymce?.get('blogBody')
+      ? tinymce.get('blogBody').getContent()
+      : $('#blogBody', dialog).value.trim();
+
+    if (!title || !slug || !body.trim()) {
+      alert('Please enter a title, URL slug and article content.');
+      return;
+    }
+
+    const saveButtons = form.querySelectorAll('button');
+    saveButtons.forEach(button => button.disabled = true);
+    $('#blogSaveMessage', dialog).textContent = 'Saving...';
+
+    try {
+      const imageFile = photoInput.files?.[0];
+      if (imageFile) {
+        const safeName = imageFile.name.toLowerCase().replace(/[^a-z0-9.-]+/g, '-');
+        const filePath = `${Date.now()}-${uid()}-${safeName}`;
+        const { error: uploadError } = await db.storage.from(BLOG_BUCKET)
+          .upload(filePath, imageFile, { upsert: false, contentType: imageFile.type });
+        if (uploadError) throw new Error(`Image upload failed: ${uploadError.message}`);
+        const { data: publicData } = db.storage.from(BLOG_BUCKET).getPublicUrl(filePath);
+        uploadedPhotoUrl = publicData.publicUrl;
+      }
+
+      const now = new Date().toISOString();
+      const payload = {
+        title,
+        slug,
+        description,
+        body,
+        photo: uploadedPhotoUrl,
+        status,
+        category: $('#blogCategory', dialog).value,
+        author: $('#blogAuthor', dialog).value.trim() || 'Saagaram Holidays',
+        meta_title: $('#blogMetaTitle', dialog).value.trim() || title,
+        meta_description: $('#blogMetaDescription', dialog).value.trim() || description,
+        updated_at: now,
+        published_at: status === 'published' ? (post?.published_at || now) : null
+      };
+
+      // Check slug uniqueness before insert/update to provide a readable error.
+      let slugCheck = db.from('blog_posts').select('id').eq('slug', slug);
+      if (post?.id) slugCheck = slugCheck.neq('id', post.id);
+      const { data: slugMatches, error: slugError } = await slugCheck.limit(1);
+      if (slugError) throw new Error(`Could not validate URL slug: ${slugError.message}`);
+      if (slugMatches?.length) throw new Error('This URL slug is already in use. Please choose another.');
+
+      const result = post?.id
+        ? await db.from('blog_posts').update(payload).eq('id', post.id)
+        : await db.from('blog_posts').insert(payload);
+
+      if (result.error) throw new Error(result.error.message);
+
+      closeDialog();
+      await renderBlog();
+      await stats();
+    } catch (error) {
+      console.error('Blog save error:', error);
+      $('#blogSaveMessage', dialog).textContent = '';
+      alert(`Could not save blog post: ${error.message}`);
+      saveButtons.forEach(button => button.disabled = false);
+    }
+  }
+
+  $('#blogForm', dialog).onsubmit = event => {
+    event.preventDefault();
+    saveBlog('draft');
+  };
+  $('#blogPublish', dialog).onclick = () => saveBlog('published');
+  $('#blogSaveDraft', dialog).textContent = 'Save Draft';
+
+  dialog.showModal();
+}
+
 
 /* ROOMS: Supabase records; photographs remain in GitHub. */
 async function renderRooms() {
@@ -354,9 +670,10 @@ async function stats() {
   const element = $('#stats');
   if (!element) return;
 
-  const [roomResult, enquiryResult] = await Promise.all([
+  const [roomResult, enquiryResult, blogResult] = await Promise.all([
     db.from('rooms').select('price'),
-    db.from('enquiries').select('id,status', { count: 'exact' })
+    db.from('enquiries').select('id,status', { count: 'exact' }),
+    db.from('blog_posts').select('id', { count: 'exact', head: true })
   ]);
 
   if (roomResult.error) {
@@ -368,7 +685,6 @@ async function stats() {
 
   const rooms = roomResult.data || [];
   const enquiries = enquiryResult.data || [];
-  const blog = localData('blog');
   const places = localData('places');
   const pricedRooms = rooms.filter(room => room.price !== null && room.price !== '').length;
 
@@ -376,7 +692,7 @@ async function stats() {
     ['Room categories', roomResult.error ? '—' : rooms.length],
     ['Rooms priced', roomResult.error ? '—' : `${pricedRooms}/${rooms.length}`],
     ['New enquiries', enquiryResult.error ? '—' : enquiries.filter(item => (item.status || 'New') === 'New').length],
-    ['Blog posts', blog.length],
+    ['Blog posts', blogResult.error ? '—' : (blogResult.count ?? 0)],
     ['Attractions', places.length],
     ['Total enquiries', enquiryResult.error ? '—' : (enquiryResult.count ?? enquiries.length)]
   ];
@@ -397,6 +713,7 @@ function show(view) {
   window.scrollTo(0, 0);
   if (view === 'rooms') renderRooms();
   if (view === 'enq') renderEnq();
+  if (view === 'blog') renderBlog();
 }
 
 document.querySelectorAll('.side [data-v]').forEach(button => {
@@ -408,19 +725,20 @@ document.querySelectorAll('[data-add]').forEach(button => {
   button.addEventListener('click', () => {
     const key = button.dataset.add;
     if (key === 'rooms') openRoomForm();
+    else if (key === 'blog') openBlogForm();
     else if (CFG[key]) openLocalForm(key);
   });
 });
 
 $('#reset')?.addEventListener('click', () => {
-  if (confirm('Erase only the demo data stored in this browser? Supabase room and enquiry records will NOT be deleted.')) {
+  if (confirm('Erase only local demo data for attractions and contact information? Supabase rooms, enquiries and blog posts will NOT be deleted.')) {
     Object.keys(localStorage).filter(key => key.startsWith('saagram_'))
       .forEach(key => localStorage.removeItem(key));
     location.reload();
   }
 });
 
-renderLocalCrud('blog');
+renderBlog();
 renderLocalCrud('places');
 renderContact();
 renderRooms();
