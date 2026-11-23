@@ -49,7 +49,7 @@
       }
 
       grid.innerHTML = data.map(post => `
-        <article class="card reveal dynamic-blog-card">
+     <article class="card dynamic-blog-card">
           <div class="img" role="img" aria-label="${esc(post.title)}"
             style="${post.photo ? `background-image:url('${esc(post.photo).replace(/'/g, '%27')}')` : 'background-image:linear-gradient(135deg,#1fa391,#0b3c5d)'}"></div>
           <div class="body">
