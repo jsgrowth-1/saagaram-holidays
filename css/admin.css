@@ -1,224 +1,44 @@
-/* SAAGRAM admin – reuses tokens from style.css */
-body.adm{background:#eef3f6;overflow:auto}
-.layout{display:grid;min-height:100vh}
-.side{background:var(--ocean-d);color:#fff;padding:20px 14px;position:fixed;inset:0 auto 0 0;width:250px;transform:translateX(-100%);transition:.3s;z-index:40;overflow:auto}
-.side.open{transform:none}
-.side .logo{display:block;margin:0 8px 22px}
-.side button{display:block;width:100%;text-align:left;background:none;border:0;color:#cfe0ea;padding:12px 14px;border-radius:10px;font:500 .95rem Poppins,sans-serif;cursor:pointer}
-.side button:hover,.side button.on{background:rgba(255,255,255,.12);color:var(--gold)}
-.side a{display:block;color:#8fb0c3;font-size:.85rem;padding:14px}
-.main{padding:70px 16px 40px}
-.top{position:fixed;inset:0 0 auto;background:#fff;box-shadow:var(--sh);padding:10px 16px;display:flex;align-items:center;gap:12px;z-index:30}
-.top button{background:var(--ocean);color:#fff;border:0;border-radius:8px;width:40px;height:40px;font-size:1.2rem;cursor:pointer}
-.demo{background:#fff4d6;border-left:4px solid var(--gold);padding:12px 16px;border-radius:8px;font-size:.85rem;margin-bottom:20px}
-.view{display:none}.view.on{display:block}
-.view h2{font-size:1.6rem;margin-bottom:16px}
-.stats{display:grid;gap:14px;grid-template-columns:repeat(2,1fr)}
-.stat{background:#fff;border-radius:var(--r);padding:18px;box-shadow:var(--sh)}
-.stat b{font:700 1.9rem 'Playfair Display',serif;color:var(--ocean);display:block}
-.panel{background:#fff;border-radius:var(--r);box-shadow:var(--sh);padding:18px;margin-bottom:18px;overflow-x:auto}
-table{width:100%;border-collapse:collapse;font-size:.9rem;min-width:520px}
-th,td{text-align:left;padding:10px;border-bottom:1px solid #e5ecf0;vertical-align:middle}
-td img{width:56px;height:42px;object-fit:cover;border-radius:8px}
-.sm{padding:6px 12px;font-size:.8rem;border-radius:8px;border:0;cursor:pointer;background:var(--sea);color:#fff;margin-right:4px}
-.sm.del{background:#c0392b}
-dialog{border:0;border-radius:var(--r);padding:22px;width:min(520px,94%);box-shadow:0 20px 60px rgba(0,0,0,.35)}
-dialog::backdrop{background:rgba(7,42,66,.6)}
-label{display:block;font-size:.85rem;font-weight:600;margin:12px 0 4px}
-input,textarea,select{width:100%;padding:11px 12px;border:1px solid #cdd9e0;border-radius:10px;font:inherit}
-textarea{min-height:90px}
-.row{display:flex;gap:10px;margin-top:16px;justify-content:flex-end}
-.empty{color:var(--muted);padding:14px}
-@media(min-width:900px){.side{transform:none}.main{margin-left:250px;padding:30px}.top{display:none}.stats{grid-template-columns:repeat(4,1fr)}}
-.admin-brand {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 15px 12px 25px;
-    text-decoration: none;
+
+/* ===== Saagaram Blog Management enhancements ===== */
+#v-blog .blog-tools { margin: 14px 0; }
+.blog-metrics { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin-bottom:14px; }
+.blog-metric { background:#fff; border-radius:14px; padding:14px 16px; box-shadow:var(--sh); }
+.blog-metric span { display:block; color:var(--muted); font-size:.82rem; }
+.blog-metric strong { display:block; color:var(--ocean); font:700 1.65rem 'Playfair Display',serif; margin-top:4px; }
+.blog-filters { display:grid; grid-template-columns:minmax(180px,1fr) minmax(150px,220px) minmax(130px,180px); gap:10px; margin-bottom:14px; }
+.blog-thumb { width:76px; height:54px; object-fit:cover; border-radius:8px; display:block; }
+.blog-no-image { color:var(--muted); font-size:.78rem; }
+.blog-slug { display:block; color:var(--muted); margin-top:4px; font-size:.75rem; }
+.blog-status { display:inline-block; border-radius:30px; padding:5px 10px; font-size:.75rem; font-weight:600; }
+.blog-status.is-published { background:#e3f6ee; color:#147a50; }
+.blog-status.is-draft { background:#fff2d8; color:#98620a; }
+.blog-actions { white-space:nowrap; }
+.blog-dialog { width:min(1120px,96vw); max-width:1120px; max-height:92vh; overflow:auto; padding:0; }
+.blog-form { padding:24px; }
+.blog-form-heading { display:flex; justify-content:space-between; align-items:flex-start; border-bottom:1px solid #e5ecf0; padding-bottom:14px; margin-bottom:18px; }
+.blog-form-heading h3 { margin:0; color:var(--ocean); font:700 1.45rem 'Playfair Display',serif; }
+.blog-form-heading p { margin:5px 0 0; color:var(--muted); font-size:.85rem; }
+.blog-close { border:0; background:#eef3f6; border-radius:50%; width:34px; height:34px; font-size:1.35rem; cursor:pointer; }
+.blog-form-grid { display:grid; grid-template-columns:minmax(0,1.7fr) minmax(260px,.8fr); gap:22px; }
+.blog-main-fields, .blog-side-fields { min-width:0; }
+.blog-side-card { background:#f7fafb; border:1px solid #e6edf0; border-radius:12px; padding:14px; margin-bottom:14px; }
+.blog-side-card h4 { margin:0 0 10px; color:var(--ocean); font:700 1rem 'Playfair Display',serif; }
+.field-help { display:block; color:var(--muted); font-size:.75rem; margin-top:5px; line-height:1.45; }
+.blog-photo-preview { display:block; width:100%; max-height:190px; object-fit:cover; border-radius:9px; margin-top:10px; }
+.blog-form-footer { display:flex; align-items:center; justify-content:flex-end; gap:9px; border-top:1px solid #e5ecf0; margin-top:18px; padding-top:16px; }
+#blogSaveMessage { margin-right:auto; color:var(--muted); font-size:.85rem; }
+.btn-publish { background:#176b50; color:#fff; border:0; border-radius:10px; padding:10px 16px; font:600 .9rem Poppins,sans-serif; cursor:pointer; }
+.btn-publish:hover { filter:brightness(.94); }
+.blog-form button:disabled { opacity:.6; cursor:wait; }
+.blog-editor { min-height:360px; }
+@media(max-width:850px) {
+  .blog-metrics { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .blog-form-grid { grid-template-columns:1fr; }
 }
-
-.admin-brand img {
-    width: 55px;
-    height: 55px;
-    object-fit: contain;
-}
-
-.admin-brand span {
-    display: flex;
-    flex-direction: column;
-}
-
-.admin-brand strong {
-    color: #ffffff;
-    font-family: 'Playfair Display', serif;
-    font-size: 22px;
-}
-
-.admin-brand small {
-    color: #c9a24b;
-    font-size: 10px;
-    letter-spacing: 2px;
-}
-
-.admin-brand img {
-    display: block;
-    width: 55px;
-    height: 55px;
-    object-fit: contain;
-    flex-shrink: 0;
-}
-/* =================================
-   SAAGARAM ADMIN - MOBILE RESPONSIVE
-================================= */
-
-.top {
-    display: none;
-}
-
-/* Tablets and mobile phones */
-@media screen and (max-width: 768px) {
-
-    body.adm {
-        overflow-x: hidden;
-    }
-
-    /* Mobile top navigation */
-    .top {
-        display: flex;
-        align-items: center;
-        gap: 15px;
-        height: 60px;
-        padding: 0 18px;
-        background: #0b2f45;
-        color: #fff;
-        position: sticky;
-        top: 0;
-        z-index: 1001;
-    }
-
-    .top strong {
-        font-size: 18px;
-    }
-
-    #menuBtn {
-        display: block;
-        background: transparent;
-        color: white;
-        border: none;
-        font-size: 26px;
-        cursor: pointer;
-    }
-
-    /* Main layout */
-    .layout {
-        display: block !important;
-        width: 100%;
-        min-height: calc(100vh - 60px);
-    }
-
-    /* Sidebar */
-    .side {
-        position: fixed !important;
-        top: 60px;
-        left: 0;
-        bottom: 0;
-        width: 260px;
-        max-width: 85%;
-        z-index: 1000;
-        overflow-y: auto;
-        transform: translateX(-100%);
-        transition: transform 0.3s ease;
-        box-shadow: 5px 0 20px rgba(0,0,0,0.2);
-    }
-
-    .side.open {
-        transform: translateX(0);
-    }
-
-    /* Main content */
-    .main {
-        width: 100% !important;
-        margin: 0 !important;
-        padding: 20px 14px !important;
-        min-width: 0;
-    }
-
-    .main h2 {
-        font-size: 22px;
-    }
-
-    /* Dashboard statistics */
-    .stats {
-        display: grid !important;
-        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-        gap: 12px;
-    }
-
-    .stats > * {
-        min-width: 0;
-        padding: 15px !important;
-    }
-
-    /* Panels */
-    .panel {
-        padding: 14px !important;
-        border-radius: 14px;
-    }
-
-    /* Tables */
-    .tbl {
-        width: 100%;
-        overflow-x: auto !important;
-        -webkit-overflow-scrolling: touch;
-    }
-
-    .tbl table {
-        min-width: 650px;
-        width: 100%;
-    }
-
-    .tbl th,
-    .tbl td {
-        white-space: nowrap;
-        padding: 12px 10px;
-    }
-
-    /* Buttons */
-    .btn {
-        min-height: 40px;
-    }
-
-    button {
-        touch-action: manipulation;
-    }
-
-    /* Forms and dialog */
-    input,
-    select,
-    textarea {
-        max-width: 100%;
-        box-sizing: border-box;
-    }
-
-    dialog {
-        width: calc(100% - 24px);
-        max-width: 500px;
-    }
-}
-
-/* Very small phones */
-@media screen and (max-width: 380px) {
-
-    .stats {
-        grid-template-columns: 1fr !important;
-    }
-
-    .main {
-        padding: 16px 10px !important;
-    }
-
-    .top strong {
-        font-size: 16px;
-    }
+@media(max-width:600px) {
+  .blog-filters { grid-template-columns:1fr; }
+  .blog-dialog { width:calc(100% - 12px); max-height:95vh; }
+  .blog-form { padding:16px; }
+  .blog-form-footer { flex-wrap:wrap; }
+  #blogSaveMessage { flex-basis:100%; }
 }
