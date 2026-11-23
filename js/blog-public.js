@@ -122,7 +122,7 @@
         </div>`;
     } catch (error) {
       console.error('Public blog article error:', error);
-     article.innerHTML = "<p class=\"post-error\">We could not load this article right now. Please refresh the page later.</p>";
+    article.innerHTML = `<p class="post-error">We couldn't load the article right now. Please refresh the page later.</p>`;
     }
   }
 
