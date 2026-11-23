@@ -113,7 +113,7 @@
       article.innerHTML = `
         ${imageMarkup(post.photo, post.title)}
         <h2 class="sec-title" style="margin-top:24px">${esc(post.title)}</h2>
-        <div class="post-meta">${post.category ? `${esc(post.category)} · ` : ''}${post.author ? `By ${esc(post.author)} · ` : ''}${post.published_at ? new Date(post.published_at).toLocaleDateString('en-IN') : ''}</div>
+       <div class="post-meta">${post.category ? esc(post.category) : ''}</div>
         ${post.description ? `<p class="post-intro">${esc(post.description)}</p>` : ''}
         <div class="post-content">${safeArticleHtml(post.body)}</div>
         <div class="actions" style="margin-top:28px">
